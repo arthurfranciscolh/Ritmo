@@ -1,0 +1,12 @@
+{
+    "name":  "ritmo-estudos",
+    "version":  "1.0.0",
+    "private":  true,
+    "type":  "module",
+    "scripts":  {
+                    "start":  "node server.mjs",
+                    "test":  "node --test",
+                    "check":  "node --check dist/app.js \u0026\u0026 node --check dist/views.js \u0026\u0026 node --check dist/core.js",
+                    "test:ui":  "node --experimental-vm-modules --test scripts/verify-interface.mjs"
+                }
+}

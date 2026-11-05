@@ -1,0 +1,62 @@
+﻿[
+    {
+        "File":  "dist\\index.html",
+        "OriginalHash":  "28FF25F90ADEF8E59E61FBC13F1634085A87275211FEF8ED84D6ACE29BD91556",
+        "NewHash":  "973A1E75E414A27A8378D416C79E28BB39998645E11A31E0B096D83EDF96A968"
+    },
+    {
+        "File":  "dist\\app.js",
+        "OriginalHash":  "67E8A472423FCA2A2ECB77C4898080B229CCD8C38ECF2E9E50824535BADEA3F6",
+        "NewHash":  "39A4C64E5CB43F2F5CA01CDE1EB51AA8E6B37A4124AFEE49258C837ADE51A97D"
+    },
+    {
+        "File":  "dist\\style.css",
+        "OriginalHash":  "B1901000829D6983F2AF3DA2B4DF19C3328672FCA9E27075600EF835873F8554",
+        "NewHash":  "42AB9033FA868EF25D2905FC8861C77DEFB30FE4A69FE4E78317B7B72168FB7F"
+    },
+    {
+        "File":  "dist\\views.js",
+        "OriginalHash":  null,
+        "NewHash":  "19AC4B1705DEAECF2BED9BE651E93C4D9B87A1ED83B59641FBB18FE0648B22F5"
+    },
+    {
+        "File":  "dist\\favicon.svg",
+        "OriginalHash":  null,
+        "NewHash":  "1302C7558A77AC0B82621184BE4C347924288B618F427ABA9E06DDA43F0AA25F"
+    },
+    {
+        "File":  "dist\\historico.html",
+        "OriginalHash":  null,
+        "NewHash":  "8B298C1637D8ABDDFA4913330140793A15800E70C242D522D276DE073E41EDF0"
+    },
+    {
+        "File":  "dist\\pastas.html",
+        "OriginalHash":  null,
+        "NewHash":  "BA570F48060413EA4A922704A57BC3DBC84621FA9B5E00EA2675B5B099100B2A"
+    },
+    {
+        "File":  "dist\\estatisticas.html",
+        "OriginalHash":  null,
+        "NewHash":  "658D9849A6DEEDA281563EDE1BB1A1666B959FD677EE8CE72B221BEB135F3F21"
+    },
+    {
+        "File":  "README.md",
+        "OriginalHash":  "B21E81FE01B158833412A3293C095829131AE26DB8CF65A4DD504363EFACB309",
+        "NewHash":  "3148907D24716F0982EFBBB0109499CA52BF33DB7340896E1DF8778646D81FA8"
+    },
+    {
+        "File":  "package.json",
+        "OriginalHash":  "34DE2A2EDBFDDEBA4F1BC5880B146FA9330ECD5314687E25ACB7338402522780",
+        "NewHash":  "1ADFF93C23ABBAACB550C59DD358AE072F92A62ECA32856A363E72D8934C5405"
+    },
+    {
+        "File":  "scripts\\verify-interface.mjs",
+        "OriginalHash":  null,
+        "NewHash":  "C1BE59D2128ACABBDBB86459E9D29F9E60133A5F26F3E5E75B909FFFC560B813"
+    },
+    {
+        "File":  "docs\\superpowers\\plans\\2026-11-04-minimal-interface.md",
+        "OriginalHash":  null,
+        "NewHash":  "B74F457183B2F17C1EAC5A6028E6C17F1A02F8D0488F657E2EFF6AB8046A8B65"
+    }
+]

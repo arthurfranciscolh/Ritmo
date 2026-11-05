@@ -1,0 +1,7 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {elapsed,clock,periodTotals,validState} from './dist/core.js';
+test('cronômetro recupera horas em segundo plano e não conta pausas',()=>{const active={accumulated:5000,runningSince:10000};assert.equal(elapsed(active,3610000),3605000);active.accumulated=elapsed(active,20000);active.runningSince=null;assert.equal(elapsed(active,999999),15000);active.runningSince=1000000;assert.equal(elapsed(active,1005000),20000);});
+test('formatação preserva sessões acima de 24 horas',()=>assert.equal(clock(90061000),'25:01:01'));
+test('semana começa na segunda; datas futuras não entram no período',()=>{const now=new Date(2026,10,4,12);const session=(day,duration)=>({startedAt:new Date(2026,10,day,10).toISOString(),duration});assert.deepEqual(periodTotals([session(1,100),session(2,200),session(4,300),session(9,400)],now),{today:300,week:500,total:1000});});
+test('validação rejeita duração negativa e referência de pasta perdida',()=>{const state={version:1,folders:[{id:'a',name:'Teste',color:'#77994f'}],sessions:[{id:'s',folderId:'a',description:'',startedAt:'2026-11-04T10:00:00Z',duration:1000}],active:null};assert.equal(validState(state),true);state.sessions[0].duration=-1;assert.equal(validState(state),false);state.sessions[0].duration=1000;state.sessions[0].folderId='missing';assert.equal(validState(state),false);});
