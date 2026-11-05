@@ -1,6 +1,6 @@
 # Ritmo — cronômetro de estudos
 
-Site de estudos minimalista, em português, com cronômetro persistente, pastas, histórico editável e temas claro e escuro.
+Site de estudos minimalista, em português, com cronômetro persistente, sessões personalizáveis, histórico editável, lixeira e temas claro e escuro.
 
 ## Executar
 
@@ -15,18 +15,20 @@ Abra **http://localhost:3000**. Não é necessário instalar dependências para 
 
 ## Páginas
 
-- **Cronômetro** (`index.html`): escolha uma pasta e clique em **Iniciar estudo**. O assunto opcional fica em **Adicionar assunto**. Durante a sessão, você pode pausar, retomar e encerrar; encerrar salva o tempo no histórico.
-- **Histórico** (`historico.html`): consulte, filtre, edite ou exclua sessões concluídas.
-- **Pastas** (`pastas.html`): crie e edite matérias, escolha cores e consulte o tempo dedicado a cada uma. **Estudar** seleciona a pasta e abre o cronômetro.
-- **Estatísticas** (`estatisticas.html`): consulte os totais de hoje, da semana e de todo o período, além da distribuição por pasta.
+- **Cronômetro** (`index.html`): escolha uma sessão e clique em **Iniciar estudo**. O assunto opcional fica em **Adicionar assunto**. Você pode pausar, retomar e encerrar; encerrar salva um registro no histórico.
+- **Histórico** (`historico.html`): consulte, filtre e edite registros concluídos. Exclusões vão para a **Lixeira**, onde podem ser restauradas por 15 dias.
+- **Sessões** (`pastas.html`): organize as matérias, escolha cores, ícones ou emojis e consulte o tempo de cada sessão. **Estudar** seleciona a sessão e abre o cronômetro. O endereço antigo foi mantido para preservar links.
+- **Estatísticas** (`estatisticas.html`): consulte os totais de hoje, da semana e de todo o período, além da distribuição por sessão.
 
 A barra lateral abre páginas independentes; no celular, a navegação fica no topo. Ao sair do cronômetro durante uma sessão, um indicador mostra o tempo e oferece um link para voltar. A sessão continua ao navegar, atualizar, fechar a aba ou suspender o dispositivo. Os temas usam tons neutros, com grafite no modo escuro e detalhes em lilás.
 
-Excluir uma pasta também exclui suas sessões, com confirmação. Uma pasta em uso só pode ser excluída após encerrar o cronômetro. Os totais consideram sessões concluídas; a semana começa na segunda-feira, no fuso local. A duração integral de uma sessão pertence à sua data de início, inclusive ao atravessar meia-noite.
+Excluir uma sessão move também seus registros para a lixeira, com confirmação. Uma sessão em uso só pode ser excluída após encerrar o cronômetro. Restaurar recupera os registros e seus totais, recriando a sessão se necessário. Os itens expiram exatamente 15 × 24 horas após a exclusão; a limpeza ocorre ao abrir ou usar o site. Sem servidor de dados, não há tarefa executando enquanto o navegador está fechado. Os totais consideram estudos concluídos; a semana começa na segunda-feira, no fuso local. A duração integral de um registro pertence à sua data de início, inclusive ao atravessar meia-noite.
+
+O editor oferece seis ícones e oito emojis. Também aceita um emoji colado, sequências compostas (👩‍💻), códigos Unicode (`U+1F680`, `1F9E0`, `U+1F469 U+200D U+1F4BB`) e entidades numéricas (`&#x1F680;`, `&#128640;`). A prévia aparece antes de salvar; texto inválido não é interpretado como HTML. O desenho dos emojis depende do sistema operacional.
 
 ## Tecnologia e armazenamento
 
-HTML, CSS e JavaScript com módulos nativos, sem framework, dependências em execução ou etapa de compilação. `dist/` contém o site completo e pode ser servido por qualquer hospedagem estática. `views.js` compartilha o layout, `app.js` conecta as interações e `core.js` mantém os cálculos de tempo.
+HTML, CSS e JavaScript com módulos nativos, sem framework, dependências em execução ou etapa de compilação. `dist/` contém o site completo e pode ser servido por qualquer hospedagem estática. `views.js` compartilha o layout, `app.js` conecta as interações, `core.js` mantém os cálculos e valida o estado, `trash.js` gerencia retenção e restauração e `symbols.js` converte os emojis. A marca da sidebar e o favicon usam o mesmo cronômetro SVG com símbolo de play no mostrador.
 
 Os dados e o tema ficam em `localStorage`, na chave **`ritmo.study.v1`**, preservada nesta revisão. O cronômetro calcula diferenças entre horários registrados, em vez de somar intervalos. Alterações entre abas da mesma origem são sincronizadas; ações simultâneas seguem a última gravação.
 
@@ -39,7 +41,9 @@ npm test
 npm run check
 ```
 
-Testes do cálculo de tempo, pausas, sessões longas, limites de semana e validação dos dados. A checagem de sintaxe cobre os três módulos.
+Testes do cálculo de tempo, pausas, estudos longos, limites de semana, validação dos dados, restauração, expiração e conversão de emojis. A checagem de sintaxe cobre os cinco módulos. Dados antigos sem lixeira ou símbolos continuam válidos.
+
+A verificação em navegador real usa Playwright como ferramenta externa de desenvolvimento. Com o servidor ativo e Playwright/Chromium disponíveis, execute `npm run test:browser`. Opcionalmente, defina `RITMO_PLAYWRIGHT_MODULE` com o diretório do pacote Playwright e `RITMO_BROWSER_PATH` com o executável do Chrome/Chromium. `RITMO_URL` altera a URL testada. Os testes usam contextos isolados, sem acessar dados do navegador pessoal, e geram capturas em `artifacts/ui/`. Cobrem cronômetro, lixeira, símbolos, erro de armazenamento, sincronização entre abas e layouts em 1440, 390 e 320 pixels.
 
 A suíte adicional de interface usa jsdom 25 e executa os módulos reais em um DOM de teste, sem navegador e sem alterar dados reais. Para executá-la com uma instalação de jsdom já disponível:
 

@@ -6,4 +6,20 @@ export function periodTotals(sessions, now=new Date()){
  const week=new Date(today);week.setDate(today.getDate()-(today.getDay()+6)%7);const nextWeek=new Date(week);nextWeek.setDate(week.getDate()+7);
  return sessions.reduce((a,s)=>{a.total+=s.duration;const d=new Date(s.startedAt);if(d>=today&&d<tomorrow)a.today+=s.duration;if(d>=week&&d<nextWeek)a.week+=s.duration;return a;},{today:0,week:0,total:0});
 }
-export function validState(s){return s?.version===1&&Array.isArray(s.folders)&&s.folders.every(f=>typeof f.id==='string'&&typeof f.name==='string'&&/^#[0-9a-f]{6}$/i.test(f.color))&&Array.isArray(s.sessions)&&s.sessions.every(x=>typeof x.id==='string'&&s.folders.some(f=>f.id===x.folderId)&&typeof x.description==='string'&&Number.isFinite(x.duration)&&x.duration>0&&Number.isFinite(Date.parse(x.startedAt)))&&(!s.active||(s.folders.some(f=>f.id===s.active.folderId)&&typeof s.active.description==='string'&&Number.isFinite(s.active.accumulated)&&s.active.accumulated>=0&&(s.active.runningSince===null||Number.isFinite(s.active.runningSince))&&Number.isFinite(Date.parse(s.active.startedAt))));}
+function validFolder(f) {
+ return !!f && typeof f.id === 'string' && typeof f.name === 'string' && /^#[0-9a-f]{6}$/i.test(f.color) && (f.symbol === undefined || typeof f.symbol === 'string' && f.symbol.length <= 200);
+}
+function validRecord(x) {
+ return !!x && typeof x.id === 'string' && typeof x.folderId === 'string' && typeof x.description === 'string' && Number.isFinite(x.duration) && x.duration > 0 && typeof x.startedAt === 'string' && Number.isFinite(Date.parse(x.startedAt));
+}
+export function validState(s) {
+ return s?.version === 1 && Array.isArray(s.folders) && s.folders.every(validFolder)
+  && Array.isArray(s.sessions) && s.sessions.every(x => validRecord(x) && s.folders.some(f => f.id === x.folderId))
+  && (s.trash === undefined || Array.isArray(s.trash) && s.trash.every(t => t && typeof t.id === 'string'
+   && ['record','group'].includes(t.kind) && Number.isFinite(t.deletedAt) && t.deletedAt >= 0 && validFolder(t.folder)
+   && Array.isArray(t.sessions) && (t.kind !== 'record' || t.sessions.length === 1)
+   && t.sessions.every(x => validRecord(x) && x.folderId === t.folder.id)))
+  && (!s.active || (s.folders.some(f => f.id === s.active.folderId) && typeof s.active.description === 'string'
+   && Number.isFinite(s.active.accumulated) && s.active.accumulated >= 0
+   && (s.active.runningSince === null || Number.isFinite(s.active.runningSince)) && Number.isFinite(Date.parse(s.active.startedAt))));
+}
