@@ -6,7 +6,8 @@ import {iconChoices, emojiChoices, parseEmoji, validSymbol} from './symbols.js';
 const $ = selector => document.querySelector(selector);
 const KEY = 'ritmo.study.v1';
 const page = Object.hasOwn(pages, document.body.dataset.page) ? document.body.dataset.page : 'timer';
-const colors = ['#77994f', '#7595bd', '#b28bc0', '#d2a45f', '#c78078', '#65a49a'];
+const colors = ['#77994f', '#7595bd', '#b28bc0', '#d2a45f', '#c78078', '#65a49a', '#7463ba', '#d77949', '#bd648f', '#589faa', '#a39843', '#7d8294'];
+const colorNames = ['Verde', 'Azul', 'Lilás', 'Dourado', 'Rosa', 'Turquesa', 'Violeta', 'Laranja', 'Magenta', 'Petróleo', 'Oliva', 'Ardósia'];
 const initial = () => ({
   version: 1,
   folders: [
@@ -229,7 +230,7 @@ function editFolder(id) {
     <fieldset class="symbol-fieldset"><legend>Ícone da sessão</legend><div class="symbol-options">${choices.map(([value,label]) => `<button type="button" class="symbol-choice" data-symbol="${escape(value)}" aria-label="${label}" aria-pressed="${selectedSymbol === value}">${symbolMarkup({symbol:value})}</button>`).join('')}</div></fieldset>
     <label for="custom-emoji">Seu próprio emoji</label><div class="emoji-input-row"><input id="custom-emoji" maxlength="200" placeholder="Cole um emoji ou U+1F680" aria-describedby="emoji-help emoji-error" value="${selectedSymbol.startsWith('icon:') ? '' : escape(selectedSymbol)}"><span id="emoji-preview" class="emoji-preview" aria-label="Prévia do ícone">${symbolMarkup({symbol:selectedSymbol})}</span></div>
     <p id="emoji-help" class="field-help">Cole qualquer emoji ou seu código Unicode. Ex.: 🧠, U+1F9E0 ou U+1F469 U+200D U+1F4BB.</p><p id="emoji-error" class="field-error" role="status"></p>
-    <fieldset class="symbol-fieldset"><legend>Cor da sessão</legend><div class="swatches">${colors.map((c,i) => `<label><input type="radio" name="color" value="${c}" ${(f?.color || colors[0]) === c ? 'checked' : ''} aria-label="Cor ${['verde','azul','lilás','dourada','rosa','turquesa'][i]}"><span class="color-dot" style="background:${c}"></span></label>`).join('')}</div></fieldset>
+    <fieldset class="symbol-fieldset color-fieldset"><legend>Cor da sessão</legend><div class="swatches">${colors.map((c,i) => `<label class="color-swatch" title="${colorNames[i]}"><input type="radio" name="color" value="${c}" ${(f?.color || colors[0]).toLowerCase() === c ? 'checked' : ''} aria-label="${colorNames[i]}"><span class="swatch-disc" style="--swatch-color:${c}" aria-hidden="true">${icon('check')}</span></label>`).join('')}</div><div class="custom-color-row"><label for="session-color">Cor personalizada</label><span id="selected-color-value">${f?.color || colors[0]}</span><input type="color" id="session-color" value="${f?.color || colors[0]}" aria-describedby="color-help"></div><p id="color-help" class="field-help">Escolha uma cor da paleta ou crie a sua.</p></fieldset>
     ${f ? '<button type="button" id="remove-folder" class="text-button danger">Excluir esta sessão…</button>' : ''}`, () => {
       const name = $('#folder-name').value.trim();
       if (!name) throw Error('Digite um nome para a sessão.');
@@ -238,11 +239,24 @@ function editFolder(id) {
       if (custom && !parseEmoji(custom)) throw Error('Cole um único emoji ou um código Unicode válido, como U+1F680.');
       const symbol = custom ? parseEmoji(custom) : selectedSymbol;
       return change(() => {
-        const color = $('input[name="color"]:checked').value;
+        const color = $('#session-color').value;
         if (f) Object.assign(folder(id), {name,color,symbol});
         else state.folders.push({id:crypto.randomUUID(),name,color,symbol});
       });
     });
+  function updateColor() {
+    const color = $('#session-color').value;
+    document.querySelectorAll('input[name="color"]').forEach(input => { input.checked = input.value === color; });
+    $('#selected-color-value').textContent = color.toUpperCase();
+    $('#emoji-preview').style.setProperty('--preview-color', color);
+  }
+  $('.swatches').onchange = e => {
+    if (!e.target.matches('input[name="color"]')) return;
+    $('#session-color').value = e.target.value;
+    updateColor();
+  };
+  $('#session-color').oninput = updateColor;
+  updateColor();
   function preview(value) {
     $('#emoji-preview').innerHTML = value ? symbolMarkup({symbol:value}) : icon('close');
     document.querySelectorAll('[data-symbol]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.symbol === value)));

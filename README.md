@@ -24,7 +24,7 @@ A barra lateral abre páginas independentes; no celular, a navegação fica no t
 
 Excluir uma sessão move também seus registros para a lixeira, com confirmação. Uma sessão em uso só pode ser excluída após encerrar o cronômetro. Restaurar recupera os registros e seus totais, recriando a sessão se necessário. Os itens expiram exatamente 15 × 24 horas após a exclusão; a limpeza ocorre ao abrir ou usar o site. Sem servidor de dados, não há tarefa executando enquanto o navegador está fechado. Os totais consideram estudos concluídos; a semana começa na segunda-feira, no fuso local. A duração integral de um registro pertence à sua data de início, inclusive ao atravessar meia-noite.
 
-O editor oferece seis ícones e oito emojis. Também aceita um emoji colado, sequências compostas (👩‍💻), códigos Unicode (`U+1F680`, `1F9E0`, `U+1F469 U+200D U+1F4BB`) e entidades numéricas (`&#x1F680;`, `&#128640;`). A prévia aparece antes de salvar; texto inválido não é interpretado como HTML. O desenho dos emojis depende do sistema operacional.
+O editor oferece seis ícones, oito emojis e uma paleta de 12 cores, além de um seletor de cor personalizada. A seleção funciona pelo teclado e é preservada ao reabrir a sessão. Também aceita um emoji colado, sequências compostas (👩‍💻), códigos Unicode (`U+1F680`, `1F9E0`, `U+1F469 U+200D U+1F4BB`) e entidades numéricas (`&#x1F680;`, `&#128640;`). A prévia aparece antes de salvar; texto inválido não é interpretado como HTML. O desenho dos emojis depende do sistema operacional.
 
 ## Tecnologia e armazenamento
 
