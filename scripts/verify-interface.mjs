@@ -46,7 +46,7 @@ test('cada página tem navegação real e somente seu conteúdo principal',async
       assert.equal(!!ui.$('#clock'),i===0);
       assert.equal(!!ui.$('#sessions'),i===1);
       assert.equal(!!ui.$('#new-folder'),i===2);
-      assert.equal(!!ui.$('#donut'),i===3);
+      assert.equal(!!ui.$('#stats-dashboard'),i===3);
     }finally {ui.close();}
   }
 });

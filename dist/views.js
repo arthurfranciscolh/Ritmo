@@ -1,3 +1,5 @@
+import {statsMarkup} from './dashboard.js';
+
 const paths = {
   timer: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 1.5M9 2h6M12 2v3m6 1 2 2"/>',
   history: '<path d="M3 11a9 9 0 1 1 2.5 7M3 4v7h7M12 7v5l3 2"/>',
@@ -63,12 +65,7 @@ const views = {
       <div id="folder-list" class="folder-grid"></div>
       <div id="empty-folders" class="empty panel" hidden>${icon('grid')}<h2>O que você quer aprender?</h2><p>Crie sua primeira sessão no botão “Nova sessão”.</p></div>
     </section>`,
-  stats: `
-    <section class="content-view" aria-labelledby="page-title">
-      <div class="page-heading"><div><h1 id="page-title">Pequenos passos, progresso<span>.</span></h1><p>Acompanhe sua dedicação, um estudo de cada vez.</p></div></div>
-      <div class="stats" aria-label="Resumo de estudos"><article><span>Estudado hoje</span><strong id="today-total">0h 00min</strong><small>Estudos concluídos hoje</small></article><article><span>Nesta semana</span><strong id="week-total">0h 00min</strong><small>De segunda a domingo</small></article><article><span>Tempo total</span><strong id="all-total">0h 00min</strong><small id="session-count">0 registros</small></article></div>
-      <article class="distribution-card panel"><div class="card-heading"><h2>Tempo por sessão</h2><span>Todo o período</span></div><div class="distribution-content"><div class="donut" id="donut"><div><strong id="donut-total">0h</strong><span>de dedicação</span></div></div><div id="distribution"></div></div><p class="distribution-note">Seus totais são atualizados ao encerrar um estudo.</p></article>
-    </section>`,
+  stats: statsMarkup,
 };
 export function mountPage(page) {
   document.body.innerHTML = `

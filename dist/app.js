@@ -2,6 +2,7 @@ import {elapsed, clock, duration, periodTotals, validState} from './core.js';
 import {mountPage, pages, icon} from './views.js';
 import {RETENTION, pruneTrash, deleteRecord, deleteGroup, restoreItem} from './trash.js';
 import {iconChoices, emojiChoices, parseEmoji, validSymbol} from './symbols.js';
+import {createDashboard} from './dashboard.js';
 
 const $ = selector => document.querySelector(selector);
 const KEY = 'ritmo.study.v1';
@@ -34,6 +35,7 @@ function readState() {
 }
 readState();
 mountPage(page);
+const dashboard = page === 'stats' ? createDashboard(() => state) : null;
 
 function toast(message) {
   $('#toast').textContent = message;
@@ -88,7 +90,7 @@ function render() {
     renderHistory();
     renderTrash();
   }
-  if (page === 'stats') renderStats(totals);
+  if (dashboard) dashboard.render();
   tick();
 }
 function renderFolders() {
@@ -98,23 +100,6 @@ function renderFolders() {
     const total = sessions.reduce((sum, s) => sum + s.duration, 0);
     return `<article class="folder-card panel" style="--folder-color:${f.color}"><div class="folder-card-top">${symbolMarkup(f)}<button class="icon-button" data-edit-folder="${escape(f.id)}" aria-label="Editar sessão ${escape(f.name)}">${icon('edit')}</button></div><h2>${escape(f.name)}</h2><p>${sessions.length} ${sessions.length === 1 ? 'registro de estudo' : 'registros de estudo'}</p><div class="folder-card-bottom"><strong>${duration(total)}</strong><button class="folder-pick" data-folder="${escape(f.id)}" aria-label="Estudar ${escape(f.name)}">Estudar ${icon('arrow')}</button></div></article>`;
   }).join('');
-}
-function renderStats(totals) {
-  $('#today-total').textContent = duration(totals.today);
-  $('#week-total').textContent = duration(totals.week);
-  $('#all-total').textContent = duration(totals.total);
-  $('#session-count').textContent = `${state.sessions.length} ${state.sessions.length === 1 ? 'registro de estudo' : 'registros de estudo'}`;
-  $('#donut-total').textContent = duration(totals.total).replace(' 00min', '');
-  let offset = 0;
-  const segments = [];
-  $('#distribution').innerHTML = state.folders.map(f => {
-    const ms = state.sessions.filter(s => s.folderId === f.id).reduce((sum, s) => sum + s.duration, 0);
-    const end = offset + (totals.total ? ms / totals.total * 100 : 0);
-    segments.push(`${f.color} ${offset}% ${end}%`);
-    offset = end;
-    return `<div class="distribution-row"><span>${symbolMarkup(f)}<i class="color-dot" style="background:${f.color}"></i>${escape(f.name)}</span><strong>${duration(ms)}</strong></div>`;
-  }).join('') || '<p class="distribution-note">Crie uma sessão para organizar seus estudos.</p><a class="text-link" href="pastas.html">Ir para sessões</a>';
-  $('#donut').style.background = totals.total ? `conic-gradient(${segments.join(',')})` : 'var(--line)';
 }
 function renderHistory() {
   const filter = $('#history-filter').value;
