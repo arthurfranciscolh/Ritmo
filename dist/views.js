@@ -3,6 +3,7 @@ import {statsMarkup} from './dashboard.js';
 const paths = {
   timer: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 1.5M9 2h6M12 2v3m6 1 2 2"/>',
   history: '<path d="M3 11a9 9 0 1 1 2.5 7M3 4v7h7M12 7v5l3 2"/>',
+  calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18M8 15h2m4 0h2M8 18h2"/>',
   folder: '<path d="M3 7V5a2 2 0 0 1 2-2h5l2 3h7a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/>',
   chart: '<path d="M4 3v17h17M9 15v-4m5 4V7m5 8V4"/>',
   moon: '<path d="M20.9 13a9 9 0 0 1-9.9-9.9A9 9 0 1 0 20.9 13Z"/>',
@@ -55,7 +56,8 @@ const views = {
     <section class="content-view" aria-labelledby="page-title">
       <div class="page-heading"><div><h1 id="page-title">Seu histórico<span>.</span></h1><p>Olhe quanto tempo você se manteve no FOCO!</p></div><button id="toggle-trash" class="secondary" aria-expanded="false" aria-controls="trash-panel">${icon('trash')} Lixeira <span id="trash-count" class="count-badge">0</span></button></div>
       <section id="trash-panel" class="trash-panel panel" aria-labelledby="trash-title" hidden><div class="trash-heading"><div><h2 id="trash-title">Lixeira</h2><p>Itens excluídos ficam aqui por 15 dias. Restaurar também recupera o tempo nos totais.</p></div></div><div id="trash-list"></div><p id="empty-trash" class="trash-empty">A lixeira está vazia.</p></section>
-      <div class="section-toolbar"><span id="history-count"></span><label class="filter-label" for="history-filter">Sessão<select id="history-filter"><option value="">Todas as sessões</option></select></label></div>
+      <div class="section-toolbar history-toolbar"><span id="history-count" role="status"></span><div class="history-filters"><div class="history-date-actions"><button type="button" id="toggle-history-date" class="secondary" aria-expanded="false" aria-controls="history-date-panel" aria-label="Filtrar histórico por data">${icon('calendar')}<span id="history-date-label">Data</span></button><button type="button" id="clear-history-date" class="icon-button" aria-label="Limpar filtro de data" title="Limpar data" hidden>${icon('close')}</button></div><label class="filter-label" for="history-filter">Sessão<select id="history-filter"><option value="">Todas as sessões</option></select></label></div></div>
+      <input type="hidden" id="history-date"><div id="history-date-panel" class="history-date-panel" role="dialog" aria-label="Escolher data do histórico" hidden></div>
       <div class="table-wrap"><table><caption class="sr-only">Registros de estudo concluídos</caption><thead><tr><th scope="col">SESSÃO / ASSUNTO</th><th scope="col">DATA</th><th scope="col">DURAÇÃO</th><th scope="col"><span class="sr-only">Ações</span></th></tr></thead><tbody id="sessions"></tbody></table><div id="empty-history" class="empty">${icon('history')}<h2>Seu primeiro estudo começa agora.</h2><p>Os estudos concluídos aparecerão aqui.</p><a href="index.html" class="text-link">Ir para o cronômetro ${icon('arrow')}</a></div></div>
       <div class="history-footer"><button id="show-more" class="secondary" hidden>Mostrar mais registros</button></div>
     </section>`,

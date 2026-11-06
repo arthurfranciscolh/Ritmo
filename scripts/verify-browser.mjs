@@ -9,8 +9,8 @@ const key = 'ritmo.study.v1';
 const errors = [];
 const base = () => ({version:1, theme:'light', folders:[{id:'math',name:'Matemática',color:'#77994f'},{id:'code',name:'Programação',color:'#7595bd',symbol:'icon:code'}],sessions:[{id:'one',folderId:'math',description:'Álgebra',startedAt:new Date(Date.now()-3600000).toISOString(),duration:5400000}],active:null,selected:'math'});
 let checks = 0;
-async function fresh(file, data=base(), viewport={width:1440,height:1000}) {
-  const context = await browser.newContext({viewport});
+async function fresh(file, data=base(), viewport={width:1440,height:1000}, contextOptions={}) {
+  const context = await browser.newContext({viewport,...contextOptions});
   // External fonts are optional. Keep checks deterministic and offline.
   await context.route('https://fonts.googleapis.com/**',route=>route.abort());
   await context.route('https://fonts.gstatic.com/**',route=>route.abort());
@@ -27,8 +27,108 @@ async function check(name, run) { if(process.env.RITMO_CHECK && !name.includes(p
 async function noOverflow(page) {
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth),true,'page overflows viewport');
 }
+async function chooseHistoryDate(page, value) {
+  if (!await page.locator('#history-date-panel').isVisible()) await page.locator('#toggle-history-date').click();
+  const [year,month]=value.split('-');
+  await page.locator('#history-calendar-year').fill(year);
+  await page.locator('#history-calendar-year').press('Tab');
+  await page.locator('#history-calendar-month').selectOption(String(Number(month)-1));
+  await page.locator(`[data-history-day="${value}"]`).click();
+}
 await mkdir('artifacts/ui',{recursive:true});
 try {
+  await check('histórico por data: dia local, sessão, paginação e limpar',async()=>{
+    const data=base();
+    const record=(id,startedAt,folderId='math')=>({id,startedAt,folderId,description:id,duration:60000});
+    data.sessions=[
+      record('anterior','2026-11-05T02:59:59Z'),
+      record('inicio','2026-11-05T03:00:00Z'),
+      record('fim','2026-11-06T02:59:59Z'),
+      record('seguinte','2026-11-06T03:00:00Z'),
+      record('outra-sessao','2026-11-05T15:00:00Z','code'),
+      ...Array.from({length:11},(_,i)=>record(`estudo-${i}`,'2026-11-05T12:00:00Z')),
+    ];
+    const {page,context}=await fresh('historico.html',data,undefined,{timezoneId:'America/Sao_Paulo'});
+    try {
+      const saved=await state(page);
+      await page.locator('#show-more').click();
+      assert.equal(await page.locator('#sessions tr').count(),16);
+      await chooseHistoryDate(page,'2026-11-05');
+      assert.equal(await page.locator('#history-count').innerText(),'14 registros');
+      assert.equal(await page.locator('#sessions tr').count(),10);
+      await page.locator('#show-more').click();
+      assert.equal(await page.locator('#sessions tr').count(),14);
+      assert.equal(await page.locator('[data-edit-session="inicio"]').count(),1);
+      assert.equal(await page.locator('[data-edit-session="fim"]').count(),1);
+      assert.equal(await page.locator('[data-edit-session="anterior"]').count(),0);
+      assert.equal(await page.locator('[data-edit-session="seguinte"]').count(),0);
+      await page.locator('#history-filter').selectOption('code');
+      assert.equal(await page.locator('#history-count').innerText(),'1 registro');
+      assert.equal(await page.locator('[data-edit-session="outra-sessao"]').count(),1);
+      await chooseHistoryDate(page,'2040-02-29');
+      assert.equal(await page.locator('#empty-history').isVisible(),true);
+      assert.match(await page.locator('#empty-history').innerText(),/data/i);
+      assert.equal(await page.locator('#show-more').isVisible(),false);
+      await page.locator('#clear-history-date').click();
+      assert.equal(await page.locator('#history-filter').inputValue(),'code');
+      assert.equal(await page.locator('#sessions tr').count(),1);
+      await page.locator('#history-filter').selectOption('');
+      assert.equal(await page.locator('#history-count').innerText(),'16 registros');
+      assert.equal(await page.locator('#sessions tr').count(),10);
+      assert.deepEqual(await state(page),saved,'filters must not change saved data');
+    } finally { await context.close(); }
+  });
+  await check('histórico por data: painel único acima do botão e teclado',async()=>{
+    for(const width of [1440,390,320]) {
+      const data=base();data.theme=width===1440?'dark':'light';
+      const {page,context}=await fresh('historico.html',data,{width,height:900});
+      try {
+        const tableBefore=await page.locator('.table-wrap').boundingBox();
+        await page.locator('#toggle-history-date').focus();
+        await page.keyboard.press('Enter');
+        assert.equal(await page.locator('#history-date').isVisible(),false,'extra date field must not appear');
+        const panel=await page.locator('#history-date-panel').boundingBox();
+        const button=await page.locator('#toggle-history-date').boundingBox();
+        assert.ok(panel.y>=0 && panel.y+panel.height<=button.y-7,'calendar must appear above button');
+        assert.ok(panel.x>=0 && panel.x+panel.width<=width,'calendar must fit viewport');
+        assert.deepEqual(await page.locator('.table-wrap').boundingBox(),tableBefore,'opening calendar must not shift content');
+        assert.equal(await page.locator('#history-date-panel [data-history-day]:focus').count(),1);
+        await chooseHistoryDate(page,'2000-02-29');
+        assert.equal(await page.locator('#history-date-panel').isVisible(),false,'selecting a day closes calendar');
+        await page.locator('#toggle-history-date').click();
+        await page.keyboard.press('ArrowRight');
+        assert.equal(await page.locator('[data-history-day="2000-03-01"]').evaluate(el=>el===document.activeElement),true);
+        await page.keyboard.press('ArrowLeft');
+        await noOverflow(page);
+        await page.screenshot({path:`artifacts/ui/history-date-${width}.png`,fullPage:true});
+        await page.keyboard.press('Escape');
+        assert.equal(await page.locator('#history-date-panel').isVisible(),false);
+        assert.equal(await page.locator('#toggle-history-date').getAttribute('aria-expanded'),'false');
+        assert.equal(await page.locator('#toggle-history-date').evaluate(el=>el===document.activeElement),true);
+        assert.match(await page.locator('#toggle-history-date').innerText(),/29\/02\/2000/);
+        await page.locator('#toggle-history-date').click();
+        await page.locator('#page-title').click();
+        assert.equal(await page.locator('#history-date-panel').isVisible(),false,'outside click closes calendar');
+        await chooseHistoryDate(page,'2026-12-31');
+        await page.locator('#toggle-history-date').click();
+        await page.getByRole('button',{name:'Próximo mês',exact:true}).click();
+        assert.equal(await page.locator('#history-calendar-year').inputValue(),'2027');
+        assert.equal(await page.locator('#history-calendar-month').inputValue(),'0');
+        await page.getByRole('button',{name:'Mês anterior',exact:true}).click();
+        assert.equal(await page.locator('#history-calendar-year').inputValue(),'2026');
+        assert.equal(await page.locator('#history-calendar-month').inputValue(),'11');
+        await chooseHistoryDate(page,'2026-08-31');
+        assert.match(await page.locator('#toggle-history-date').innerText(),/31\/08\/2026/);
+        await page.locator('#toggle-history-date').click();
+        await page.locator('#history-calendar-year').fill('2024');
+        await page.getByRole('button',{name:/31 de agosto/}).click();
+        assert.equal(await page.locator('#history-date-panel').isVisible(),false,'clicking a day immediately after editing year selects it');
+        assert.match(await page.locator('#toggle-history-date').innerText(),/31\/08\/2024/);
+        await page.locator('#clear-history-date').click();
+        assert.equal(await page.locator('#history-count').innerText(),'1 registro');
+      } finally { await context.close(); }
+    }
+  });
   await check('cronômetro: copy, navegação, início, pausa, retorno e registro',async()=>{
     const {page,context}=await fresh('index.html');
     assert.equal(await page.locator('#page-title').innerText(),'Comece a focar.');

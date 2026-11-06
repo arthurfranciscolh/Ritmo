@@ -3,6 +3,8 @@ import {mountPage, pages, icon} from './views.js';
 import {RETENTION, pruneTrash, deleteRecord, deleteGroup, restoreItem} from './trash.js';
 import {iconChoices, emojiChoices, parseEmoji, validSymbol} from './symbols.js';
 import {createDashboard} from './dashboard.js';
+import {localDayKey} from './analytics.js';
+import {createHistoryCalendar} from './history-calendar.js';
 
 const $ = selector => document.querySelector(selector);
 const KEY = 'ritmo.study.v1';
@@ -103,13 +105,21 @@ function renderFolders() {
 }
 function renderHistory() {
   const filter = $('#history-filter').value;
-  const sessions = state.sessions.filter(s => !filter || s.folderId === filter).sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt));
+  const selectedDate = $('#history-date').value;
+  const sessions = state.sessions.filter(s => (!filter || s.folderId === filter) && (!selectedDate || localDayKey(new Date(s.startedAt)) === selectedDate)).sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt));
+  const dateLabel = selectedDate ? selectedDate.split('-').reverse().join('/') : 'Data';
+  $('#history-date-label').textContent = dateLabel;
+  $('#toggle-history-date').setAttribute('aria-label', selectedDate ? `Alterar data do histórico: ${dateLabel}` : 'Filtrar histórico por data');
+  $('#toggle-history-date').classList.toggle('date-selected', !!selectedDate);
+  $('#clear-history-date').hidden = !selectedDate;
   $('#sessions').innerHTML = sessions.slice(0, limit).map(s => {
     const f = folder(s.folderId), date = new Date(s.startedAt);
     return `<tr><td><span class="record-name">${symbolMarkup(f)}${escape(f.name)}</span><small>${escape(s.description || 'Registro de estudo')}</small></td><td>${date.toLocaleDateString('pt-BR', {day:'2-digit', month:'short', year:'numeric'})}<small>${date.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})}</small></td><td>${clock(s.duration)}</td><td><div class="row-actions"><button class="icon-button" data-edit-session="${escape(s.id)}" aria-label="Editar registro de ${escape(f.name)}">${icon('edit')}</button><button class="icon-button danger" data-delete-session="${escape(s.id)}" aria-label="Excluir registro de ${escape(f.name)}">${icon('trash')}</button></div></td></tr>`;
   }).join('');
   $('#empty-history').hidden = sessions.length > 0;
-  $('#empty-history h2').textContent = filter ? 'Nenhum registro nesta sessão.' : 'Seu primeiro estudo começa agora.';
+  $('#empty-history h2').textContent = selectedDate ? 'Nenhum registro nesta data.' : filter ? 'Nenhum registro nesta sessão.' : 'Seu primeiro estudo começa agora.';
+  $('#empty-history p').textContent = selectedDate ? (filter ? 'Escolha outra data ou sessão para consultar seus estudos.' : 'Escolha outra data ou limpe o filtro para ver os demais estudos.') : 'Os estudos concluídos aparecerão aqui.';
+  $('#empty-history .text-link').hidden = !!selectedDate;
   $('#history-count').textContent = `${sessions.length} ${sessions.length === 1 ? 'registro' : 'registros'}`;
   $('#show-more').hidden = sessions.length <= limit;
 }
@@ -201,6 +211,7 @@ if (page === 'history') {
     }
   };
   $('#history-filter').onchange = () => { limit = 10; renderHistory(); };
+  createHistoryCalendar(() => { limit = 10; renderHistory(); });
   $('#show-more').onclick = () => { limit += 10; renderHistory(); };
 }
 function modal(title,html,callback,save='Salvar'){ $('#modal-title').textContent=title;$('#modal-fields').innerHTML=html;$('#form-error').textContent='';$('#save-modal').textContent=save;$('#save-modal').classList.toggle('danger',save==='Excluir');submitModal=callback;$('#modal').showModal();}
