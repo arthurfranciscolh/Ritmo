@@ -98,9 +98,7 @@ function render() {
 function renderFolders() {
   $('#empty-folders').hidden = state.folders.length > 0;
   $('#folder-list').innerHTML = state.folders.map(f => {
-    const sessions = state.sessions.filter(s => s.folderId === f.id);
-    const total = sessions.reduce((sum, s) => sum + s.duration, 0);
-    return `<article class="folder-card panel" style="--folder-color:${f.color}"><div class="folder-card-top">${symbolMarkup(f)}<button class="icon-button" data-edit-folder="${escape(f.id)}" aria-label="Editar sessão ${escape(f.name)}">${icon('edit')}</button></div><h2>${escape(f.name)}</h2><p>${sessions.length} ${sessions.length === 1 ? 'registro de estudo' : 'registros de estudo'}</p><div class="folder-card-bottom"><strong>${duration(total)}</strong><button class="folder-pick" data-folder="${escape(f.id)}" aria-label="Estudar ${escape(f.name)}">Estudar ${icon('arrow')}</button></div></article>`;
+    return `<article class="folder-card panel" style="--folder-color:${f.color}"><div class="folder-card-top">${symbolMarkup(f)}<button class="icon-button" data-edit-folder="${escape(f.id)}" aria-label="Editar sessão ${escape(f.name)}">${icon('edit')}</button></div><h2>${escape(f.name)}</h2><div class="folder-card-bottom"><button class="folder-pick" data-folder="${escape(f.id)}" aria-label="Estudar ${escape(f.name)}">Estudar ${icon('arrow')}</button></div></article>`;
   }).join('');
 }
 function renderHistory() {
