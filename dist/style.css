@@ -110,10 +110,13 @@ details input { margin-top: 10px; font-size: 12px; }
 .filter-label { margin: 0; display: flex; gap: 12px; align-items: center; font-weight: 400; font-size: 11px; }
 .filter-label select { width: 190px; font-size: 12px; }
 .history-toolbar { flex-wrap: wrap; }
-.history-filters { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: flex-end; gap: 12px; margin-left: auto; }
-.history-date-actions { display: flex; align-items: center; gap: 2px; }
-.history-date-actions .icon-button { min-width: 44px; min-height: 44px; }
-.history-date-actions .date-selected { color: var(--accent); background: var(--soft); }
+.history-heading { margin-bottom: 20px; }
+.history-date-navigation { display: flex; align-items: center; gap: 6px; margin-bottom: 24px; }
+.history-day-switcher { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+.history-date-navigation .icon-button { min-width: 44px; min-height: 44px; }
+.history-day-switcher .secondary { min-width: 138px; padding-inline: 12px; border: 0; border-radius: 0; font-variant-numeric: tabular-nums; }
+.history-day-switcher .date-selected { color: var(--accent); background: var(--soft); }
+#previous-history-day .icon { transform: rotate(180deg); }
 .history-date-panel { position: fixed; z-index: 30; width: 280px; max-width: calc(100vw - 16px); padding: 10px; overflow-y: auto; border-radius: 12px; background: var(--panel); color: var(--ink); box-shadow: 0 6px 24px #0003; }
 .calendar-heading { display: flex; align-items: center; gap: 4px; margin-bottom: 6px; }
 .calendar-heading .icon-button { min-width: 28px; min-height: 32px; }

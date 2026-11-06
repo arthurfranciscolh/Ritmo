@@ -5,6 +5,7 @@ export function createHistoryCalendar(onChange) {
   const button = document.querySelector('#toggle-history-date');
   const panel = document.querySelector('#history-date-panel');
   const value = document.querySelector('#history-date');
+  value.value = localDayKey(new Date());
   button.setAttribute('aria-haspopup', 'dialog');
   const months = Array.from({length:12}, (_, month) => new Date(2024, month, 1).toLocaleDateString('pt-BR', {month:'long'}));
   panel.innerHTML = `<div class="calendar-heading">
@@ -27,9 +28,9 @@ export function createHistoryCalendar(onChange) {
   function position() {
     if (panel.hidden) return;
     const anchor = button.getBoundingClientRect();
-    panel.style.left = `${Math.max(8, Math.min(anchor.right-panel.offsetWidth, innerWidth-panel.offsetWidth-8))}px`;
-    panel.style.bottom = `${innerHeight-anchor.top+8}px`;
-    panel.style.maxHeight = `${Math.max(0, anchor.top-16)}px`;
+    panel.style.left = `${Math.max(8, Math.min(anchor.left, innerWidth-panel.offsetWidth-8))}px`;
+    panel.style.top = `${anchor.bottom+8}px`;
+    panel.style.maxHeight = `${Math.max(0, innerHeight-anchor.bottom-16)}px`;
   }
   function draw(focus = false) {
     const year = focusedDate.getFullYear(), month = focusedDate.getMonth();
@@ -59,6 +60,16 @@ export function createHistoryCalendar(onChange) {
     button.setAttribute('aria-expanded', 'true');
     draw(true);
   };
+  function stepDay(offset) {
+    const current = value.value ? new Date(`${value.value}T12:00:00`) : new Date();
+    const next = dateAt(current.getFullYear(), current.getMonth(), current.getDate()+offset);
+    if (next.getFullYear()<1 || next.getFullYear()>9999) return;
+    value.value = localDayKey(next);
+    close(false);
+    onChange();
+  }
+  document.querySelector('#previous-history-day').onclick = () => stepDay(-1);
+  document.querySelector('#next-history-day').onclick = () => stepDay(1);
   function changeMonth(year, month) {
     const next = dateAt(year, month, 1);
     if (next.getFullYear()<1 || next.getFullYear()>9999) return;

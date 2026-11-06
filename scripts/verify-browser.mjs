@@ -37,6 +37,47 @@ async function chooseHistoryDate(page, value) {
 }
 await mkdir('artifacts/ui',{recursive:true});
 try {
+  await check('histórico por data: hoje e setas percorrem dias locais',async()=>{
+    const data=base();
+    const record=(id,startedAt,folderId='math')=>({id,startedAt,folderId,description:id,duration:60000});
+    data.sessions=[...Array.from({length:12},(_,i)=>record(`hoje-${i}`,'2026-03-08T16:00:00Z')),record('ontem','2026-03-07T17:00:00Z'),record('amanha','2026-03-09T16:00:00Z','code')];
+    const {page,context}=await fresh('historico.html',data,undefined,{timezoneId:'America/New_York'});
+    try {
+      await page.clock.install({time:new Date('2026-03-08T18:00:00Z')});
+      await page.reload();
+      const saved=await state(page);
+      assert.equal(await page.locator('#history-date-label').innerText(),'Hoje');
+      assert.equal(await page.locator('#history-count').innerText(),'12 registros');
+      await page.locator('#show-more').click();
+      assert.equal(await page.locator('#sessions tr').count(),12);
+      await page.getByRole('button',{name:'Dia anterior',exact:true}).click();
+      assert.equal(await page.locator('#history-date-label').innerText(),'07/03/2026');
+      assert.equal(await page.locator('[data-edit-session="ontem"]').count(),1);
+      await page.getByRole('button',{name:'Próximo dia',exact:true}).click();
+      assert.equal(await page.locator('#history-date-label').innerText(),'Hoje');
+      assert.equal(await page.locator('#sessions tr').count(),10,'day navigation resets pagination');
+      await page.locator('#history-filter').selectOption('math');
+      await page.getByRole('button',{name:'Próximo dia',exact:true}).click();
+      assert.equal(await page.locator('#history-date-label').innerText(),'09/03/2026');
+      assert.equal(await page.locator('#history-count').innerText(),'0 registros');
+      assert.equal(await page.locator('#history-filter').inputValue(),'math');
+      await page.locator('#history-filter').selectOption('');
+      assert.equal(await page.locator('[data-edit-session="amanha"]').count(),1);
+      await chooseHistoryDate(page,'2024-03-01');
+      await page.getByRole('button',{name:'Dia anterior',exact:true}).click();
+      assert.equal(await page.locator('#history-date-label').innerText(),'29/02/2024');
+      await chooseHistoryDate(page,'2026-12-31');
+      await page.getByRole('button',{name:'Próximo dia',exact:true}).click();
+      assert.equal(await page.locator('#history-date-label').innerText(),'01/01/2027');
+      await page.getByRole('button',{name:'Dia anterior',exact:true}).click();
+      assert.equal(await page.locator('#history-date-label').innerText(),'31/12/2026');
+      await page.locator('#clear-history-date').click();
+      assert.equal(await page.locator('#history-date-label').innerText(),'Todas as datas');
+      await page.getByRole('button',{name:'Dia anterior',exact:true}).click();
+      assert.equal(await page.locator('#history-date-label').innerText(),'07/03/2026');
+      assert.deepEqual(await state(page),saved);
+    } finally { await context.close(); }
+  });
   await check('histórico por data: dia local, sessão, paginação e limpar',async()=>{
     const data=base();
     const record=(id,startedAt,folderId='math')=>({id,startedAt,folderId,description:id,duration:60000});
@@ -51,6 +92,7 @@ try {
     const {page,context}=await fresh('historico.html',data,undefined,{timezoneId:'America/Sao_Paulo'});
     try {
       const saved=await state(page);
+      await page.locator('#clear-history-date').click();
       await page.locator('#show-more').click();
       assert.equal(await page.locator('#sessions tr').count(),16);
       await chooseHistoryDate(page,'2026-11-05');
@@ -78,18 +120,23 @@ try {
       assert.deepEqual(await state(page),saved,'filters must not change saved data');
     } finally { await context.close(); }
   });
-  await check('histórico por data: painel único acima do botão e teclado',async()=>{
+  await check('histórico por data: posição do controle, painel abaixo e teclado',async()=>{
     for(const width of [1440,390,320]) {
       const data=base();data.theme=width===1440?'dark':'light';
       const {page,context}=await fresh('historico.html',data,{width,height:900});
       try {
         const tableBefore=await page.locator('.table-wrap').boundingBox();
+        const intro=await page.locator('.page-heading p').boundingBox();
+        const navigation=await page.locator('.history-date-navigation').boundingBox();
+        const count=await page.locator('#history-count').boundingBox();
+        assert.ok(navigation.y>=intro.y+intro.height && navigation.y+navigation.height<count.y,'date control belongs between intro and count');
+        assert.ok(Math.abs(navigation.x-intro.x)<1 && Math.abs(navigation.x-tableBefore.x)<1,'date control aligns with content');
         await page.locator('#toggle-history-date').focus();
         await page.keyboard.press('Enter');
         assert.equal(await page.locator('#history-date').isVisible(),false,'extra date field must not appear');
         const panel=await page.locator('#history-date-panel').boundingBox();
         const button=await page.locator('#toggle-history-date').boundingBox();
-        assert.ok(panel.y>=0 && panel.y+panel.height<=button.y-7,'calendar must appear above button');
+        assert.ok(panel.y>=button.y+button.height+7 && panel.y+panel.height<=900,'calendar must appear below button');
         assert.ok(panel.x>=0 && panel.x+panel.width<=width,'calendar must fit viewport');
         assert.deepEqual(await page.locator('.table-wrap').boundingBox(),tableBefore,'opening calendar must not shift content');
         assert.equal(await page.locator('#history-date-panel [data-history-day]:focus').count(),1);

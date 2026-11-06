@@ -107,11 +107,14 @@ function renderHistory() {
   const filter = $('#history-filter').value;
   const selectedDate = $('#history-date').value;
   const sessions = state.sessions.filter(s => (!filter || s.folderId === filter) && (!selectedDate || localDayKey(new Date(s.startedAt)) === selectedDate)).sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt));
-  const dateLabel = selectedDate ? selectedDate.split('-').reverse().join('/') : 'Data';
+  const formattedDate = selectedDate.split('-').reverse().join('/');
+  const dateLabel = selectedDate ? (selectedDate === localDayKey(new Date()) ? 'Hoje' : formattedDate) : 'Todas as datas';
   $('#history-date-label').textContent = dateLabel;
-  $('#toggle-history-date').setAttribute('aria-label', selectedDate ? `Alterar data do histórico: ${dateLabel}` : 'Filtrar histórico por data');
+  $('#toggle-history-date').setAttribute('aria-label', selectedDate ? `Alterar data do histórico: ${dateLabel === 'Hoje' ? 'Hoje, ' : ''}${formattedDate}` : 'Filtrar histórico por data');
   $('#toggle-history-date').classList.toggle('date-selected', !!selectedDate);
   $('#clear-history-date').hidden = !selectedDate;
+  $('#previous-history-day').disabled = selectedDate === '0001-01-01';
+  $('#next-history-day').disabled = selectedDate === '9999-12-31';
   $('#sessions').innerHTML = sessions.slice(0, limit).map(s => {
     const f = folder(s.folderId), date = new Date(s.startedAt);
     return `<tr><td><span class="record-name">${symbolMarkup(f)}${escape(f.name)}</span><small>${escape(s.description || 'Registro de estudo')}</small></td><td>${date.toLocaleDateString('pt-BR', {day:'2-digit', month:'short', year:'numeric'})}<small>${date.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})}</small></td><td>${clock(s.duration)}</td><td><div class="row-actions"><button class="icon-button" data-edit-session="${escape(s.id)}" aria-label="Editar registro de ${escape(f.name)}">${icon('edit')}</button><button class="icon-button danger" data-delete-session="${escape(s.id)}" aria-label="Excluir registro de ${escape(f.name)}">${icon('trash')}</button></div></td></tr>`;
